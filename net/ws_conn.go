@@ -26,7 +26,7 @@ type WSConnStruct struct {
 	readTimeOut 			int
 	messageType 			int
 }
-func newWSConnStruct(sconn *websocket.Conn,a AgentInterface,readTimeOut int,messageType int) *WSConnStruct {
+func NewWSConnStruct(sconn *websocket.Conn,a AgentInterface,readTimeOut int,messageType int) *WSConnStruct {
 	return &WSConnStruct{
 		procotolType:PROCOTOL_WEBSOCKET_TYPE,
 		sconn:sconn,

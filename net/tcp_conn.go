@@ -19,6 +19,12 @@ type TCPConnStruct struct {
 	mutex 					sync.Mutex
 
 	readTimeOut 			int
+
+	writeBuffer 			[]byte
+	writeBufferMax 			int
+	writeTimeOut			int
+
+
 }
 func NewTCPConnStruct(sconn net.Conn,a AgentInterface,readTimeOut int) *TCPConnStruct {
 	return &TCPConnStruct{
@@ -27,6 +33,9 @@ func NewTCPConnStruct(sconn net.Conn,a AgentInterface,readTimeOut int) *TCPConnS
 			agent:a,
 			sendChan: make(chan []byte,1024),
 			readTimeOut:readTimeOut,
+			writeBuffer:make([]byte,0),
+			writeBufferMax:1024,
+			writeTimeOut:1000,
 		}
 }
 
@@ -50,6 +59,42 @@ func (this *TCPConnStruct) Send(msg []byte)  {
 	if this.isCloseSend == false{
 		this.sendChan <- msg
 	}
+}
+func (this *TCPConnStruct) SendSync(msg []byte)  {
+	if len(this.writeBuffer) == 0{
+		this.sconn.SetWriteDeadline(time.Now().Add(time.Duration(this.writeTimeOut) * time.Millisecond))
+		n,err := this.sconn.Write(msg)
+		if err != nil{
+			this.sconn.Close()
+			klog.Println("WriteMessage fail :",err)
+			return
+		}
+		if len(msg) > n{
+			this.writeBuffer = append(this.writeBuffer,msg[n:]...)
+		}
+	}else{
+		if len(this.writeBuffer) > this.writeBufferMax{
+			this.sconn.Close()
+			klog.Println("writeBufferMax")
+			return
+		}
+		this.writeBuffer = append(this.writeBuffer,msg[:]...)
+		this.sconn.SetWriteDeadline(time.Now().Add(time.Duration(this.writeTimeOut) * time.Millisecond))
+		n,err := this.sconn.Write(this.writeBuffer)
+		if err != nil{
+			this.sconn.Close()
+			klog.Println("WriteMessage fail :",err)
+			return
+		}
+		if len(this.writeBuffer) > n{
+			this.writeBuffer = this.writeBuffer[n:]
+		}
+	}
+	return
+}
+func (this *TCPConnStruct) Write(msg []byte)  (n int, err error) {
+	this.sconn.SetWriteDeadline(time.Now().Add(time.Duration(this.writeTimeOut) * time.Millisecond))
+	return  this.sconn.Write(msg)
 }
 
 func (this *TCPConnStruct) Run()  {

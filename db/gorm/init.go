@@ -31,10 +31,10 @@ func InitGorm()  {
 	)
 	var err error
 	GormDB, err = gorm.Open("mysql", addr)
-	if err != nil {
-		klog.Warn.Printf("gorm open ok")
+	if err == nil {
+		klog.Warn.Println("gorm open ok")
 	}else{
-		klog.Warn.Printf("gorm open fail:",err)
+		klog.Warn.Println("gorm open fail:",err)
 	}
 }
 

@@ -25,6 +25,11 @@ func (this *AgentSruct) OnConnected(clientConn knet.ConnInterface) error {
 func (this *AgentSruct) OnMessage(clientConn knet.ConnInterface, msg []byte) error {
 	klog.Println("OnMessage:",clientConn,msg)
 	clientConn.Send(msg)
+	c ,ok := clientConn.(*knet.TCPConnStruct)
+	if ok {
+		c.SendSync(msg)
+		c.Write(msg)
+	}
 	return nil
 }
 func (this *AgentSruct) OnClose(clientConn knet.ConnInterface) error {
@@ -47,6 +52,6 @@ func (this *AgentSruct) CheckPackage(msg []byte) int {
 
 func main() {
 	a := NewAgentSruct()
-	s :=knet.NewTCPServer(":8080",a,2000)
+	s :=knet.NewTCPServer(":8081",a,2000)
 	s.Run()
 }

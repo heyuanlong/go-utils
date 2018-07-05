@@ -57,7 +57,7 @@ func (server *WSServer) serveWs( w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var conn ConnInterface
-	conn =newWSConnStruct(wsconn,server.agent,server.readTimeOut ,server.messageType)
+	conn =NewWSConnStruct(wsconn,server.agent,server.readTimeOut ,server.messageType)
 	err  = server.agent.OnConnected(conn)
 	if err != nil{
 		klog.Println("OnConnected fail:",err)
