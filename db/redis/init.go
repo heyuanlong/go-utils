@@ -60,7 +60,7 @@ func Test()  {
 	v, err := redis.String(rc.Do("get", "key1"))
 	rc.Close()
 	if err !=nil {
-		klog.Klog.Fatal(err.Error())
+		klog.Info.Fatal(err.Error())
 	}
-	klog.Klog.Println(v)
+	klog.Info.Println(v)
 }
