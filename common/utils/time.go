@@ -31,3 +31,12 @@ func TransformUnix(str string) (int64,error ){
 	}
 	return tm.Unix(),nil
 }
+
+//时间戳转日期
+func TimestampToDate(tm int64) string {
+	return time.Unix(tm, 0).Format("2006-01-02")
+}
+//时间戳转日期
+func TimestampToStr(tm int64) string {
+	return time.Unix(tm, 0).Format("2006-01-02 15:04:05")
+}

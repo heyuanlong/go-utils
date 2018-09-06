@@ -35,9 +35,11 @@ func InitRedis()  {
 				klog.Warn.Fatal(err.Error())
 				return nil, err
 			}
-			if _, err := c.Do("AUTH", auth); err != nil {
-				c.Close()
-				return nil, err
+			if auth != "" {
+				if _, err := c.Do("AUTH", auth); err != nil {
+					c.Close()
+					return nil, err
+				}
 			}
 			// 选择db
 			//c.Do("SELECT", REDIS_DB)
