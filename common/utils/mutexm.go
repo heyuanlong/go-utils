@@ -4,21 +4,22 @@ import (
 	"sync"
 )
 
-type MutexM struct{
-	glockInt sync.Mutex
+type MutexM struct {
+	glockInt    sync.Mutex
 	glockString sync.Mutex
-	lmInt map[int]*sync.Mutex
-	lmString map[string]*sync.Mutex
+	lmInt       map[int]*sync.Mutex
+	lmString    map[string]*sync.Mutex
 }
-func NewMutexM()*MutexM{
+
+func NewMutexM() *MutexM {
 	return &MutexM{
-		lmInt:make(map[int]*sync.Mutex),
-		lmString:make(map[string]*sync.Mutex),
+		lmInt:    make(map[int]*sync.Mutex),
+		lmString: make(map[string]*sync.Mutex),
 	}
 }
-func (ts *MutexM) LockInt(i int){
+func (ts *MutexM) LockInt(i int) {
 	ts.glockInt.Lock()
-	if _,ok := ts.lmInt[i];!ok{
+	if _, ok := ts.lmInt[i]; !ok {
 		ts.lmInt[i] = &sync.Mutex{}
 	}
 	ts.glockInt.Unlock()
@@ -26,13 +27,13 @@ func (ts *MutexM) LockInt(i int){
 	l := ts.lmInt[i]
 	l.Lock()
 }
-func (ts *MutexM) UnLockInt(i int){
+func (ts *MutexM) UnLockInt(i int) {
 	l := ts.lmInt[i]
 	l.Unlock()
 }
-func (ts *MutexM) LockString(i string){
+func (ts *MutexM) LockString(i string) {
 	ts.glockString.Lock()
-	if _,ok := ts.lmString[i];!ok{
+	if _, ok := ts.lmString[i]; !ok {
 		ts.lmString[i] = &sync.Mutex{}
 	}
 	ts.glockString.Unlock()
@@ -40,7 +41,7 @@ func (ts *MutexM) LockString(i string){
 	l := ts.lmString[i]
 	l.Lock()
 }
-func (ts *MutexM) UnLockString(i string){
+func (ts *MutexM) UnLockString(i string) {
 	l := ts.lmString[i]
 	l.Unlock()
 }

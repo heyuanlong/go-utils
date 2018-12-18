@@ -2,37 +2,27 @@ package redis
 
 import (
 	"fmt"
+	"log"
 	"time"
+
 	"github.com/garyburd/redigo/redis"
 
-	kconf "github.com/heyuanlong/go-utils/common/conf"
 	klog "github.com/heyuanlong/go-utils/common/log"
 )
 
-var (
-	RedisClient     *redis.Pool
-)
+func NewRedisPool(host, port, auth string) (*redis.Pool, error) {
 
-func init() {
-	
-}
-
-func InitRedis()  {
-
-	host,_ := kconf.GetString("redis","host")
-	port,_ := kconf.GetString("redis","port")
-	auth,_ := kconf.GetString("redis","auth")
-	addr := fmt.Sprintf("%s:%s",host,port)
+	addr := fmt.Sprintf("%s:%s", host, port)
 	klog.Info.Println(addr)
 
-	RedisClient = &redis.Pool{
-		MaxIdle:    1,
-		MaxActive:   30,
-		IdleTimeout: 1800 * time.Second,
+	RedisClient := &redis.Pool{
+		MaxIdle: 30,
+		//MaxActive:   30,
+		IdleTimeout: 60 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", addr )
+			c, err := redis.Dial("tcp", addr)
 			if err != nil {
-				klog.Warn.Fatal(err.Error())
+				log.Println("redis open fail:", err)
 				return nil, err
 			}
 			if auth != "" {
@@ -46,23 +36,24 @@ func InitRedis()  {
 			return c, nil
 		},
 	}
+	//懒加载
+	return RedisClient, nil
 }
 
-func GetRedis() redis.Conn  {
-	rc := RedisClient.Get()
+func GetRedis(RedisPool *redis.Pool) redis.Conn {
+	rc := RedisPool.Get()
 	return rc
 }
-
-func CloseRedis(rc redis.Conn )  {
+func CloseRedis(rc redis.Conn) {
 	rc.Close()
 }
 
-func Test()  {
-	rc := RedisClient.Get()
-	v, err := redis.String(rc.Do("get", "key1"))
+func Test(RedisPool *redis.Pool) error {
+	rc := RedisPool.Get()
+	_, err := redis.String(rc.Do("get", "key1"))
 	rc.Close()
-	if err !=nil {
-		klog.Info.Fatal(err.Error())
+	if err != nil {
+		return err
 	}
-	klog.Info.Println(v)
+	return nil
 }

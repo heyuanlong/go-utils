@@ -1,74 +1,132 @@
 package log
 
 import (
-	"os"
+	"io"
 	syslog "log"
+	"os"
 )
 
-const(
-	LOG_LEVEL_ERROR     = 0  //错误
-	LOG_LEVEL_WARN	    = 1  //警告
-	LOG_LEVEL_INFO      = 2  //普通
-	LOG_LEVEL_DEBUG     = 3  //调试
+const (
+	Ldate         = syslog.Ldate
+	Ltime         = syslog.Ltime
+	Lmicroseconds = syslog.Lmicroseconds
+	Llongfile     = syslog.Llongfile
+	Lshortfile    = syslog.Lshortfile
+	LUTC          = syslog.LUTC
+	LstdFlags     = syslog.LstdFlags
 )
-var setLevel = LOG_LEVEL_DEBUG
+const (
+	LOG_LEVEL_ERROR = 9 //错误
+	LOG_LEVEL_WARN  = 8 //警告
+	LOG_LEVEL_INFO  = 7 //普通
+	LOG_LEVEL_DEBUG = 6 //调试
+)
 
-type EntryWrite struct{
-}
-func (EntryWrite) Write(p []byte)(n int ,err error)  {
-	return 0,nil
+type EntryWrite struct {
 }
 
-var Error 			*syslog.Logger
-var Warn 			*syslog.Logger
-var Info 			*syslog.Logger
-var Debug 			*syslog.Logger
+func (EntryWrite) Write(p []byte) (n int, err error) {
+	return 0, nil
+}
+
+type Llog struct {
+	L        *syslog.Logger
+	objLevel int
+	sysLevel int
+	logFile  string
+	out      io.Writer
+	prefix   string
+	flag     int
+}
+
+func NewLlog(logFileP string, prefixP string, flagP int, objLevelP, sysLevelP int) *Llog {
+	ts := &Llog{
+		objLevel: objLevelP,
+		sysLevel: sysLevelP,
+		logFile:  logFileP,
+		prefix:   prefixP,
+		flag:     flagP,
+	}
+	if ts.objLevel > ts.sysLevel {
+		ts.out = EntryWrite{}
+		ts.L = syslog.New(ts.out, "", 0)
+	} else {
+		if ts.logFile == "" {
+			ts.out = os.Stdout
+			ts.L = syslog.New(os.Stdout, "["+ts.prefix+"]", ts.flag)
+		} else {
+			logf, err := os.OpenFile(ts.logFile, os.O_CREATE|os.O_APPEND, 0644)
+			if err != nil {
+				syslog.Fatalln("open file error")
+				return nil
+			}
+			ts.out = logf
+			ts.L = syslog.New(logf, "["+ts.prefix+"]", ts.flag)
+		}
+	}
+	return ts
+}
+func (ts *Llog) SetlogFile(logFileP string) {
+	ts.logFile = logFileP
+
+	if ts.objLevel < ts.sysLevel {
+		ts.out = EntryWrite{}
+		ts.L = syslog.New(ts.out, "", 0)
+	} else {
+		if ts.logFile == "" {
+			ts.out = os.Stdout
+			ts.L = syslog.New(os.Stdout, "["+ts.prefix+"]", ts.flag)
+		} else {
+			logf, err := os.OpenFile(ts.logFile, os.O_CREATE|os.O_APPEND, 0644)
+			if err != nil {
+				syslog.Fatalln("open file error")
+				return
+			}
+			ts.out = logf
+			ts.L = syslog.New(logf, "["+ts.prefix+"]", ts.flag)
+		}
+	}
+}
+func (ts *Llog) SetLevel(objLevelP, sysLevelP int) {
+	ts.objLevel = objLevelP
+	ts.sysLevel = sysLevelP
+
+	if ts.objLevel < ts.sysLevel {
+		ts.out = EntryWrite{}
+		ts.L = syslog.New(ts.out, "", 0)
+	} else {
+		if ts.logFile == "" {
+			ts.out = os.Stdout
+			ts.L = syslog.New(os.Stdout, "["+ts.prefix+"]", ts.flag)
+		} else {
+			logf, err := os.OpenFile(ts.logFile, os.O_CREATE|os.O_APPEND, 0644)
+			if err != nil {
+				syslog.Fatalln("open file error")
+				return
+			}
+			ts.out = logf
+			ts.L = syslog.New(logf, "["+ts.prefix+"]", ts.flag)
+		}
+	}
+}
+func (ts *Llog) Printf(format string, v ...interface{}) {
+	ts.L.Printf(format, v...)
+}
+func (ts *Llog) Print(v ...interface{}) {
+	ts.L.Print(v...)
+}
+func (ts *Llog) Println(v ...interface{}) {
+	ts.L.Println(v...)
+}
+
+var Error *Llog
+var Warn *Llog
+var Info *Llog
+var Debug *Llog
 
 func init() {
-	Error = 	syslog.New(os.Stdout,"[Debug]",syslog.LstdFlags | syslog.Lshortfile )
-	Warn = 		syslog.New(os.Stdout,"[Warn]",syslog.LstdFlags | syslog.Lshortfile )
-	Info = 		syslog.New(os.Stdout,"[Info]",syslog.LstdFlags | syslog.Lshortfile )
-	Debug = 	syslog.New(os.Stdout,"[Debug]",syslog.LstdFlags | syslog.Lshortfile )
-}
-
-func SetLogLevel(level int)  {
-	setLevel = level
-	entry :=  EntryWrite{}
-	if LOG_LEVEL_DEBUG > setLevel{
-		Debug = syslog.New(entry,"",syslog.LstdFlags | syslog.Lshortfile )
-	}
-	if LOG_LEVEL_INFO > setLevel{
-		Info = syslog.New(entry,"",syslog.LstdFlags | syslog.Lshortfile )
-	}
-	if LOG_LEVEL_WARN > setLevel{
-		Warn = syslog.New(entry,"",syslog.LstdFlags | syslog.Lshortfile )
-	}
-	if LOG_LEVEL_ERROR > setLevel{
-		Error = syslog.New(entry,"",syslog.LstdFlags | syslog.Lshortfile )
-	}
-
-}
-
-
-
-func SetLogfile(logfile string ) error  {
-	if logfile != ""{
-		logFile,err  := os.OpenFile(logfile,os.O_CREATE | os.O_APPEND,0644)
-		if err != nil {
-			syslog.Fatalln("open file error")
-		}
-		if LOG_LEVEL_DEBUG <= setLevel{
-			Debug = syslog.New(logFile,"[Debug]",syslog.LstdFlags | syslog.Lshortfile )
-		}
-		if LOG_LEVEL_INFO <= setLevel{
-			Info = syslog.New(logFile,"[Info]",syslog.LstdFlags | syslog.Lshortfile )
-		}
-		if LOG_LEVEL_WARN <= setLevel{
-			Warn = syslog.New(logFile,"[Warn]",syslog.LstdFlags | syslog.Lshortfile )
-		}
-		if LOG_LEVEL_ERROR <= setLevel{
-			Error = syslog.New(logFile,"[Error]",syslog.LstdFlags | syslog.Lshortfile )
-		}
-	}
-	return nil
+	Error = NewLlog("", "Error", syslog.LstdFlags|syslog.Lshortfile, LOG_LEVEL_ERROR, LOG_LEVEL_ERROR)
+	Warn = NewLlog("", "Warn", syslog.LstdFlags|syslog.Lshortfile, LOG_LEVEL_WARN, LOG_LEVEL_WARN)
+	Info = NewLlog("", "Info", syslog.LstdFlags|syslog.Lshortfile, LOG_LEVEL_INFO, LOG_LEVEL_INFO)
+	Debug = NewLlog("", "Debug", syslog.LstdFlags|syslog.Lshortfile, LOG_LEVEL_DEBUG, LOG_LEVEL_DEBUG)
 }
