@@ -1,64 +1,46 @@
 package conf
 
 import (
-	"errors"
+	"log"
 
 	"github.com/robfig/config"
 )
 
-var configFile string
-var c *config.Config
-
-func SetFile(f string) error {
-	configFile = f
-	_, err := GetConf()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func GetConf() (*config.Config, error) {
-	if c != nil {
-		return c, nil
-	}
-	tmpc, err := config.ReadDefault(configFile)
-	if err != nil {
-		return nil, err
-	}
-	c = tmpc
-	return c, nil
+type Kconf struct {
+	configFile string
+	c          *config.Config
 }
 
-func GetString(section string, option string) (value string, err error) {
-	if c == nil {
-		return "", errors.New("config is nil")
+func NewKconf(f string) *Kconf {
+	tmpc, err := config.ReadDefault(f)
+	if err != nil {
+		log.Println("conf read fail:", err)
+		return nil
 	}
-	return c.String(section, option)
-}
-func GetInt(section string, option string) (value int, err error) {
-	if c == nil {
-		return 0, errors.New("config is nil")
+
+	return &Kconf{
+		configFile: f,
+		c:          tmpc,
 	}
-	return c.Int(section, option)
 }
-func GetInt32(section string, option string) (value int32, err error) {
-	i, err := GetInt(section, option)
+
+func (ts *Kconf) GetString(section string, option string) (value string, err error) {
+	return ts.c.String(section, option)
+}
+func (ts *Kconf) GetInt(section string, option string) (value int, err error) {
+	return ts.c.Int(section, option)
+}
+func (ts *Kconf) GetInt32(section string, option string) (value int32, err error) {
+	i, err := ts.GetInt(section, option)
 	return int32(i), err
 }
-func GetInt64(section string, option string) (value int64, err error) {
-	i, err := GetInt(section, option)
+func (ts *Kconf) GetInt64(section string, option string) (value int64, err error) {
+	i, err := ts.GetInt(section, option)
 	return int64(i), err
 }
-
-func GetFloat(section string, option string) (value float64, err error) {
-	if c == nil {
-		return 0, errors.New("config is nil")
-	}
-	return c.Float(section, option)
+func (ts *Kconf) GetFloat(section string, option string) (value float64, err error) {
+	return ts.c.Float(section, option)
 }
-func GetBool(section string, option string) (value bool, err error) {
-	if c == nil {
-		return false, errors.New("config is nil")
-	}
-	return c.Bool(section, option)
+func (ts *Kconf) GetBool(section string, option string) (value bool, err error) {
+	return ts.c.Bool(section, option)
 }

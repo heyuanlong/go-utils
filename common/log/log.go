@@ -57,7 +57,7 @@ func NewLlog(logFileP string, prefixP string, flagP int, objLevelP, sysLevelP in
 		} else {
 			logf, err := os.OpenFile(ts.logFile, os.O_CREATE|os.O_APPEND, 0644)
 			if err != nil {
-				syslog.Fatalln("open file error")
+				syslog.Println("open file error:", err)
 				return nil
 			}
 			ts.out = logf
@@ -79,7 +79,7 @@ func (ts *Llog) SetlogFile(logFileP string) {
 		} else {
 			logf, err := os.OpenFile(ts.logFile, os.O_CREATE|os.O_APPEND, 0644)
 			if err != nil {
-				syslog.Fatalln("open file error")
+				syslog.Println("open file error")
 				return
 			}
 			ts.out = logf
@@ -101,7 +101,7 @@ func (ts *Llog) SetLevel(objLevelP, sysLevelP int) {
 		} else {
 			logf, err := os.OpenFile(ts.logFile, os.O_CREATE|os.O_APPEND, 0644)
 			if err != nil {
-				syslog.Fatalln("open file error")
+				syslog.Println("open file error")
 				return
 			}
 			ts.out = logf
