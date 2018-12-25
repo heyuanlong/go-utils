@@ -6,14 +6,16 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
-
-	klog "github.com/heyuanlong/go-utils/common/log"
 )
 
-func NewRedisPool(host, port, auth string) (*redis.Pool, error) {
+type RedisPool struct {
+	rp *redis.Pool
+}
+
+func NewRedisPool(host, port, auth string) (*RedisPool, error) {
 
 	addr := fmt.Sprintf("%s:%s", host, port)
-	klog.Info.Println(addr)
+	log.Println(addr)
 
 	RedisClient := &redis.Pool{
 		MaxIdle: 30,
@@ -37,19 +39,19 @@ func NewRedisPool(host, port, auth string) (*redis.Pool, error) {
 		},
 	}
 	//懒加载
-	return RedisClient, nil
+	return &RedisPool{rp: RedisClient}, nil
 }
 
-func GetRedis(RedisPool *redis.Pool) redis.Conn {
-	rc := RedisPool.Get()
+func (ts *RedisPool) GetRedis() redis.Conn {
+	rc := ts.rp.Get()
 	return rc
 }
-func CloseRedis(rc redis.Conn) {
+func (ts *RedisPool) CloseRedis(rc redis.Conn) {
 	rc.Close()
 }
 
-func Test(RedisPool *redis.Pool) error {
-	rc := RedisPool.Get()
+func Test(ts *RedisPool) error {
+	rc := ts.rp.Get()
 	_, err := redis.String(rc.Do("get", "key1"))
 	rc.Close()
 	if err != nil {
