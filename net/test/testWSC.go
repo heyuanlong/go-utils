@@ -2,6 +2,7 @@ package main
 
 import (
 	klog "log"
+	"time"
 
 	knet "github.com/heyuanlong/go-utils/net"
 )
@@ -45,6 +46,8 @@ func (this *AgentSruct) CheckPackage(msg []byte) int {
 
 func main() {
 	a := NewAgentSruct()
-	s := knet.NewWSServer(":8081", a, 100000, knet.TextMessage)
-	s.Run()
+	s := knet.NewWSClient("ws", "127.0.0.1:8081", "/ws", a, 100000, knet.TextMessage)
+	c := s.Run()
+	c.Send([]byte("connect ok"))
+	time.Sleep(55555555555555)
 }
