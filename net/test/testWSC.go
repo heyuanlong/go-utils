@@ -46,7 +46,7 @@ func (this *AgentSruct) CheckPackage(msg []byte) int {
 
 func main() {
 	a := NewAgentSruct()
-	s := knet.NewWSClient("ws", "127.0.0.1:8081", "/ws", a, 100000, knet.TextMessage)
+	s := knet.NewWSClient("ws", "127.0.0.1:8081", "/ws", nil, a, 100000, knet.TextMessage)
 	c := s.Run()
 	c.Send([]byte("connect ok"))
 	time.Sleep(55555555555555)
