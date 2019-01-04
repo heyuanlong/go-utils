@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"io"
 	syslog "log"
 	"os"
@@ -110,13 +111,16 @@ func (ts *Llog) SetLevel(objLevelP, sysLevelP int) {
 	}
 }
 func (ts *Llog) Printf(format string, v ...interface{}) {
-	ts.L.Printf(format, v...)
+	//ts.L.Printf(format, v...)
+	ts.L.Output(2, fmt.Sprintf(format, v...))
 }
 func (ts *Llog) Print(v ...interface{}) {
-	ts.L.Print(v...)
+	//ts.L.Print(v...)
+	ts.L.Output(2, fmt.Sprint(v...))
 }
 func (ts *Llog) Println(v ...interface{}) {
-	ts.L.Println(v...)
+	//ts.L.Println(v...)
+	ts.L.Output(2, fmt.Sprintln(v...))
 }
 
 var Error *Llog
