@@ -1,8 +1,8 @@
 package net
 
 import (
-	"time"
 	"sync"
+	"time"
 	//"net"
 	"github.com/gorilla/websocket"
 
@@ -10,34 +10,35 @@ import (
 )
 
 const (
-	TextMessage = websocket.TextMessage
+	TextMessage   = websocket.TextMessage
 	BinaryMessage = websocket.BinaryMessage
 )
 
 type WSConnStruct struct {
-	procotolType 			int
-	sconn 					*websocket.Conn
-	agent 					AgentInterface
+	procotolType int
+	sconn        *websocket.Conn
+	agent        AgentInterface
 
-	sendChan 				chan []byte
-	isCloseSend 			bool
-	mutex 					sync.Mutex
+	sendChan    chan []byte
+	isCloseSend bool
+	mutex       sync.Mutex
 
-	readTimeOut 			int
-	messageType 			int
+	readTimeOut int
+	messageType int
 }
-func NewWSConnStruct(sconn *websocket.Conn,a AgentInterface,readTimeOut int,messageType int) *WSConnStruct {
+
+func NewWSConnStruct(sconn *websocket.Conn, a AgentInterface, readTimeOut int, messageType int) *WSConnStruct {
 	return &WSConnStruct{
-		procotolType:PROCOTOL_WEBSOCKET_TYPE,
-		sconn:sconn,
-		agent:a,
-		sendChan: make(chan []byte,1024),
-		readTimeOut:readTimeOut,
-		messageType:messageType,
-		}
+		procotolType: PROCOTOL_WEBSOCKET_TYPE,
+		sconn:        sconn,
+		agent:        a,
+		sendChan:     make(chan []byte, 1024),
+		readTimeOut:  readTimeOut,
+		messageType:  messageType,
+	}
 }
 
-func (this *WSConnStruct) Close()  {
+func (this *WSConnStruct) Close() {
 	this.mutex.Lock()
 	defer this.mutex.Unlock()
 	if this.isCloseSend == false {
@@ -51,22 +52,22 @@ func (this *WSConnStruct) IsClose() bool {
 	return this.isCloseSend
 }
 
-func (this *WSConnStruct) Send(msg []byte)  {
+func (this *WSConnStruct) Send(msg []byte) {
 	this.mutex.Lock()
 	defer this.mutex.Unlock()
-	if this.isCloseSend == false{
+	if this.isCloseSend == false {
 		this.sendChan <- msg
 	}
 }
 
-func (this *WSConnStruct) Run()  {
+func (this *WSConnStruct) Run() {
 	go this.read()
 	this.write()
 }
-func (this *WSConnStruct) read()  {
+func (this *WSConnStruct) read() {
 	defer func() {
-		this.agent.OnClose(this)
 		this.Close()
+		this.agent.OnClose(this)
 		klog.Println("go read out")
 	}()
 	for {
@@ -74,14 +75,14 @@ func (this *WSConnStruct) read()  {
 		_, msg, err := this.sconn.ReadMessage()
 		//klog.Println("mt:",mt)
 		if err != nil {
-			klog.Println("ReadMessage fail:",err)
+			klog.Println("ReadMessage fail:", err)
 			return
 		}
 
-		this.agent.OnMessage(this,msg[0:])
+		this.agent.OnMessage(this, msg[0:])
 	}
 }
-func (this *WSConnStruct) write()  {
+func (this *WSConnStruct) write() {
 	defer func() {
 		this.sconn.Close()
 		klog.Println("go write out")
@@ -93,9 +94,9 @@ func (this *WSConnStruct) write()  {
 				this.sconn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			err := this.sconn.WriteMessage(this.messageType,message)
-			if err != nil{
-				klog.Println("WriteMessage fail ",err)
+			err := this.sconn.WriteMessage(this.messageType, message)
+			if err != nil {
+				klog.Println("WriteMessage fail ", err)
 				return
 			}
 		}
