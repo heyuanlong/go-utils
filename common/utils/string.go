@@ -1,20 +1,31 @@
 package utils
 
 import (
+	"errors"
 	"math/rand"
 	"time"
-	"github.com/Jeffail/gabs"
-	"errors"
 
-	"fmt"
+	"github.com/Jeffail/gabs"
+
 	"bytes"
+	"fmt"
 	"sort"
 	"strconv"
 )
 
+//0：数字+大小写字母，1：数字+小写字母，2：数字+大写字母，3：数字
+func GetRandomString(lens int, types int) string {
+	var str string
+	if types == 1 {
+		str = "0123456789abcdefghijklmnopqrstuvwxyz"
+	} else if types == 2 {
+		str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	} else if types == 3 {
+		str = "0123456789"
+	} else {
+		str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	}
 
-func GetRandomString(lens int) string{
-	str := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	bytes := []byte(str)
 	result := []byte{}
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -24,7 +35,8 @@ func GetRandomString(lens int) string{
 	return string(result)
 }
 
-func GetJsonString(body []byte,path string)(string ,error){
+//data.str
+func GetJsonString(body []byte, path string) (string, error) {
 	jsonParsed, err := gabs.ParseJSON(body)
 	if err != nil {
 		return "", err
@@ -35,18 +47,22 @@ func GetJsonString(body []byte,path string)(string ,error){
 	}
 	return v, nil
 }
-func GetJsonInt64(body []byte,path string)(int64 ,error){
+
+//data.int64
+func GetJsonInt64(body []byte, path string) (int64, error) {
 	jsonParsed, err := gabs.ParseJSON(body)
 	if err != nil {
 		return 0, err
 	}
-	v, ok := jsonParsed.Path(path).Data().(int64)
+	v, ok := jsonParsed.Path(path).Data().(float64)
 	if !ok {
 		return 0, errors.New("get value fail")
 	}
-	return v, nil
+	return int64(v), nil
 }
-func GetJsonFloat64(body []byte,path string)(float64 ,error){
+
+//data.float64
+func GetJsonFloat64(body []byte, path string) (float64, error) {
 	jsonParsed, err := gabs.ParseJSON(body)
 	if err != nil {
 		return 0, err
@@ -58,9 +74,8 @@ func GetJsonFloat64(body []byte,path string)(float64 ,error){
 	return v, nil
 }
 
-
-
-func ChangeMapToURLParam(param map[string]interface{}) (string ,error){
+//map转为url参数，带升序排序
+func ChangeMapToURLParam(param map[string]interface{}) (string, error) {
 	paramM := make(map[string]string)
 	for k, v := range param {
 		switch val := v.(type) {
@@ -80,11 +95,11 @@ func ChangeMapToURLParam(param map[string]interface{}) (string ,error){
 			paramM[k] = strconv.FormatFloat(float64(val), 'f', -1, 64)
 		default:
 			//klog.Warn.Println(k, v)
-			return "",errors.New("not find value type")
+			return "", errors.New("not find value type")
 		}
 	}
-	lens :=  len(paramM)
-	keys := make([]string, 0,lens)
+	lens := len(paramM)
+	keys := make([]string, 0, lens)
 	for k := range paramM {
 		keys = append(keys, k)
 	}
@@ -92,11 +107,11 @@ func ChangeMapToURLParam(param map[string]interface{}) (string ,error){
 	var b bytes.Buffer
 
 	for i, k := range keys {
-		if i == (lens - 1){
+		if i == (lens - 1) {
 			fmt.Fprintf(&b, "%s=%s", k, paramM[k])
-		}else{
+		} else {
 			fmt.Fprintf(&b, "%s=%s&", k, paramM[k])
 		}
 	}
-	return b.String(),nil
+	return b.String(), nil
 }

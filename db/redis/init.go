@@ -98,6 +98,15 @@ func (ts *RedisPool) Decr(key string) error {
 	}
 	return nil
 }
+func (ts *RedisPool) Del(key string) error {
+	rc := ts.GetRedis()
+	defer ts.CloseRedis(rc)
+	if _, err := rc.Do("DEL", key); err != nil {
+		log.Println(err)
+		return err
+	}
+	return nil
+}
 func (ts *RedisPool) GetFloat64(key string) (float64, error) {
 	rc := ts.GetRedis()
 	defer ts.CloseRedis(rc)

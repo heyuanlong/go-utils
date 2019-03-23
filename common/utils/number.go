@@ -11,6 +11,7 @@ import (
 //fmt.Println(utils.Round(-3.444444,1,2))  //-3.44
 //fmt.Println(utils.Round(-3.444444,0.4,2))  //-3.45
 //fmt.Println(utils.Round(3.0,1,4))  //3
+//roundOn=1,相等于裁剪
 func Round(val float64, roundOn float64, places int) (newVal float64) {
 	var round float64
 	pow := math.Pow(10, float64(places))
