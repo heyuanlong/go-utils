@@ -48,7 +48,7 @@ func NewLlog(logFileP string, prefixP string, flagP int, objLevelP, sysLevelP in
 		prefix:   prefixP,
 		flag:     flagP,
 	}
-	if ts.objLevel > ts.sysLevel {
+	if ts.objLevel < ts.sysLevel {
 		ts.out = EntryWrite{}
 		ts.L = syslog.New(ts.out, "", 0)
 	} else {
